@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Sistemas del cuerpo humano</title>
+<style>
+  /* ====== Reset & base ====== */
+  * { box-sizing: border-box; margin:0; padding:0; }
+  :root{
+    --blue:#001DFF;
+    --blue-dark:#04032B;
+    --blue-700:#1a3a5f;
+    --blue-600:#254fba;
+    --orange:#f59e42;
+    --orange-700:#e67e22;
+    --bg-grad-1:#1a3a5f;
+    --bg-grad-2:#0d2340;
+    --white:#ffffff;
+    --green:#2ecc71;
+    --red:#e74c3c;
+    --panel:#E8EAFF;
+  }
+  body{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+    min-height:100vh; display:flex; justify-content:center; align-items:center; color:#333; padding:10px;
+  }
+  .game-container{
+    background:var(--white); border-radius:16px; box-shadow:0 12px 24px rgba(0,0,0,.12);
+    padding:1.2rem; max-width:980px; width:100%; min-height:640px; position:relative; overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  header{ text-align:center; margin-bottom:.8rem; margin-top:2rem; }
+  h1{ color:var(--blue-dark); font-size:clamp(2rem,5.2vw,3.1rem); font-weight:900; letter-spacing:.5px; }
+  .subtitle{ color:var(--blue-700); font-size:clamp(1rem,3.5vw,1.25rem); margin-top:.25rem; }
+  .highlight-keyword{ color:var(--orange); font-weight:800; }
+
+  .btn{ color:#fff; border:none; padding:.75rem 1.2rem; border-radius:10px; cursor:pointer; font-weight:800;
+        transition:transform .08s ease, box-shadow .2s ease, background-color .25s ease; min-width:140px; height:48px;
+        display:inline-flex; align-items:center; justify-content:center; }
+  .btn:hover{ transform:translateY(-2px); box-shadow:0 6px 14px rgba(0,0,0,.12); }
+  .btn:active{ transform:translateY(0); }
+  .btn-primary{ background:var(--orange); }
+  .btn-primary:hover{ background:var(--orange-700); }
+  .btn-blue{ background:var(--blue-600); }
+  .btn-blue:hover{ filter:brightness(.9); }
+  .btn-ghost{ background:#e6f2ff; color:var(--blue-700); }
+
+  .screen{ display:none; animation:fadeIn .35s ease; }
+  .screen.active{ display:block; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);} }
+
+  .game-info{ display:flex; gap:.6rem; align-items:center; justify-content:space-between; margin:.4rem 0 1rem; flex-wrap:wrap; }
+  .timer{ font-weight:900; color:var(--blue-700); font-size:clamp(.95rem,2.3vw,1.15rem); }
+  .progress-bar{ flex:1; height:10px; background:#e6f2ff; border-radius:999px; overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--orange) 0%, var(--orange-700) 100%); transition:width .3s ease; }
+  .score{ font-weight:900; color:var(--blue-700); font-size:clamp(.9rem,2.3vw,1.1rem); }
+
+  .start-content{ display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1; gap:1rem; padding:1rem; }
+  .advice-box{ background:var(--panel); border-left:4px solid var(--blue-700); padding:1rem 1.2rem; border-radius:12px;
+               color:var(--blue-700); max-width:760px; text-align:center; font-size:clamp(1rem,3vw,1.15rem); }
+  .start-image{ max-width: 300px; width: 100%; margin: 0 auto; }
+
+  .mute-btn{ position:absolute; top:.8rem; right:4.5rem; background:var(--orange); color:#fff; border:2px solid #fff; width:38px; height:38px; border-radius:50%; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; z-index:20; }
+  .mute-btn:hover{ background:var(--orange-700); }
+
+  .cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+    justify-content: center;
+  }
+
+  .memory-card {
+    background-color: #3498db;
+    color: white;
+    border: 3px solid transparent;
+    border-radius: 10px;
+    padding: 15px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    text-align: center;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+    user-select: none;
+  }
+
+  .memory-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+
+  .memory-card.selected {
+    background-color: #f1c40f;
+    transform: scale(1.05);
+  }
+
+  .memory-card.matched {
+    background-color: #27ae60;
+    color: white;
+    cursor: default;
+  }
+
+  .results{ display:flex; flex-direction:column; align-items:center; gap:.6rem; text-align:center; min-height:calc(100vh - 180px); }
+  .final-title{ color:var(--blue-dark); font-weight:900; }
+  .big-score{ font-size:clamp(2.2rem,6vw,3.4rem); color:var(--blue-600); font-weight:900; }
+  .score-title{ font-size:1.0rem; color:var(--blue-700); margin-top:1rem; }
+  .final-time{ color:var(--blue-700); }
+  .trophy{ font-size:clamp(4rem,10vw,6rem); margin:.2rem 0; color:var(--orange); animation:bounce 1s ease infinite; }
+  @keyframes bounce { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-8px);} }
+  .credit{ color:var(--blue-700); margin-top:1rem; }
+
+  /* Tamaño del mensaje final (un poco menor que el título final) */
+  #finalMsg {
+    font-size: clamp(1.6rem, 3.8vw, 2.4rem);
+    font-weight: 800;
+    color: var(--blue-700);
+    margin-top: 0.6rem;
+  }
+
+  /* Estilos para el logo del colegio en la pantalla final */
+  .school-logo {
+    display: block;
+    width: 160px;       /* ancho por defecto en pantallas grandes */
+    max-width: 28%;     /* evita que crezca demasiado en pantallas muy anchas */
+    height: auto;
+    margin-top: 0.8rem;
+    border-radius: 8px; /* opcional, suaviza esquinas si la imagen lo permite */
+    object-fit: contain;
+  }
+
+  /* Ajustes responsivos para móviles */
+  @media (max-width: 899px) {
+    .school-logo { width: 140px; max-width: 160px; }
+  }
+  @media (max-width: 420px) {
+    .school-logo { width: 110px; max-width: 40%; margin-top: 0.6rem; }
+    .results { gap: 0.4rem; padding: 0 0.6rem; }
+    #finalMsg { font-size: clamp(1.2rem, 4.2vw, 1.8rem); }
+    .big-score { font-size: clamp(1.8rem, 6vw, 2.6rem); }
+    .cards-container {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+  }
+  @media (max-width: 320px) {
+    .school-logo { width: 90px; max-width: 48%; }
+    #finalMsg { font-size: clamp(1.1rem, 4.6vw, 1.6rem); }
+    .cards-container {
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+  }
+
+  .confetti{ position:fixed; width:10px; height:10px; border-radius:50%; animation: confetti-fall 3s linear forwards; z-index:999; }
+  @keyframes confetti-fall{ 0%{ transform:translate(0, -20px) rotate(0); opacity:1;} 100%{ transform:translate(var(--tx), var(--ty)) rotate(360deg); opacity:0; } }
+
+  .hidden {
+    display: none;
+  }
+
+  .theory-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .theory-content {
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    margin: 25px 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    border-left: 6px solid var(--blue);
+    font-size: 1.15rem;
+    line-height: 1.8;
+  }
+
+  .theory-title {
+    color: var(--blue-dark);
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin-bottom: 25px;
+    text-align: center;
+    letter-spacing: 0.5px;
+    position: relative;
+    padding-bottom: 15px;
+  }
+
+  .theory-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--orange), var(--blue));
+    border-radius: 2px;
+  }
+
+  .system-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,245,255,0.9));
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    border-left: 4px solid var(--orange);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .system-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .system-name {
+    color: var(--blue);
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+  }
+
+  .system-name::before {
+    content: '▸';
+    color: var(--orange);
+    font-size: 1.5rem;
+    margin-right: 10px;
+  }
+
+  .system-function {
+    color: #555;
+    font-size: 1.1rem;
+    font-style: italic;
+    padding-left: 25px;
+  }
+
+  .game-instruction {
+    font-size: 1.5rem;
+    color: var(--blue);
+    margin: 20px 0;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .attempts {
+    font-weight: 900;
+    color: var(--blue-700);
+    font-size: clamp(1rem, 2.3vw, 1.15rem);
+  }
+
+  .marker.clicked-temp { transform: translate(-50%, -50%) scale(.95); transition: transform .12s ease; }
+
+  /* Nuevo estilo para el consejo, centrado y en dos líneas */
+  .advice-box .advice-text {
+      display: block;
+  }
+  .advice-box strong {
+      display: block;
+      margin-top: 0.5rem;
+      text-align: center;
+      font-size: 0.9rem; /* Tamaño de fuente más pequeño para el mensaje de ánimo */
+  }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <button class="mute-btn" id="muteBtn" title="Silenciar/Activar sonido">🔊</button>
+
+  <!-- Main Menu Screen -->
+  <section class="screen active" id="startScreen" aria-labelledby="title">
+    <header>
+      <h1 id="title">Sistemas del cuerpo humano</h1>
+      <div class="subtitle">Identifica la función de los sistemas del cuerpo</div>
+    </header>
+    <div class="start-content">
+      <div class="advice-box" role="note" aria-live="polite">
+        <span class="advice-text">Empareja cada <span class="highlight-keyword">sistema</span> con la función que realiza.</span>
+        <strong>¡Buena suerte!</strong>
+      </div>
+      <button class="btn btn-primary" id="playBtn">Comenzar a aprender</button>
+      <img class="start-image" src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/main/Ni%C3%B1os.png" alt="Niños aprendiendo">
+    </div>
+  </section>
+
+  <!-- Theory Screen -->
+  <section class="screen" id="theoryScreen">
+    <div class="theory-container">
+      <h1 class="title">Sistemas del cuerpo humano</h1>
+      <div class="theory-content">
+        <h2 class="theory-title">Funciones de los sistemas del cuerpo</h2>
+        
+        <div class="system-item">
+          <div class="system-name">Aparato digestivo</div>
+          <div class="system-function">Obtiene nutrientes de los alimentos</div>
+        </div>
+        
+        <div class="system-item">
+          <div class="system-name">Aparato respiratorio</div>
+          <div class="system-function">Obtiene oxígeno del aire</div>
+        </div>
+        
+        <div class="system-item">
+          <div class="system-name">Aparato circulatorio</div>
+          <div class="system-function">Transporta sangre por todo el cuerpo</div>
+        </div>
+        
+        <div class="system-item">
+          <div class="system-name">Aparato excretor</div>
+          <div class="system-function">Limpia la sangre y expulsa desechos</div>
+        </div>
+        
+        <div class="system-item">
+          <div class="system-name">Sentidos</div>
+          <div class="system-function">Obtener información</div>
+        </div>
+        
+        <div class="system-item">
+          <div class="system-name">Sistema nervioso</div>
+          <div class="system-function">Transmite información y decide una respuesta</div>
+        </div>
+        
+        <div class="system-item">
+          <div class="system-name">Aparato locomotor</div>
+          <div class="system-function">Realiza movimientos</div>
+        </div>
+        
+        <div class="system-item">
+          <div class="system-name">Aparato reproductor</div>
+          <div class="system-function">Permite que tengamos bebés</div>
+        </div>
+      </div>
+      <div style="text-align: center;">
+        <button class="btn btn-primary" id="startGameBtn">Jugar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Game Screen -->
+  <section class="screen" id="gameScreen">
+    <div class="game-container">
+      <header>
+        <h1 class="title">Sistemas del cuerpo humano</h1>
+      </header>
+      <div class="game-info">
+        <div class="timer" id="timer">00:00</div>
+        <div class="progress-bar" aria-label="Progreso"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="attempts">Intentos: <span id="attempts">0</span></div>
+      </div>
+      <div class="game-instruction" id="gameInstruction">Empareja cada sistema con su función</div>
+      <div class="cards-container" id="cardsContainer"></div>
+    </div>
+  </section>
+
+  <!-- Final Screen -->
+  <section class="screen" id="resultsScreen">
+    <header>
+      <h1 class="final-title">Sistemas del cuerpo humano</h1>
+    </header>
+    <div class="results">
+      <div id="trophyBox" style="display:none;">
+        <div class="trophy">🏆</div>
+      </div>
+      <div class="score-title">Tu puntuación:</div>
+      <div class="big-score" id="finalScore">0</div>
+      <div class="final-time">Tiempo: <span id="finalTime">00:00</span></div>
+      <div class="final-time">Intentos: <span id="finalAttempts">0</span></div>
+      <div id="finalMsg" class="subtitle"></div>
+      <button class="btn btn-primary" id="backToMenuBtn" style="background:var(--orange);">Volver al menú</button>
+      <span class="credit">Created by Manuel J. Ventura</span>
+      <img class="school-logo" src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/main/Siurot.png" alt="Logo del colegio" />
+    </div>
+  </section>
+</div>
+
+<script>
+// Audio setup
+let soundEnabled = true;
+let audioUnlocked = false;
+const audioUrls = {
+  correct: 'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Correcto.mp3',
+  error: 'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Error.mp3',
+  completed: 'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Completado.mp3',
+  victory: 'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Termin%C3%A9.mp3',
+  tap: 'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/37b3eb2da9c15c04dfb71dfe1be60f088ea3cdfc/Tap.mp3'
+};
+
+const audioObjects = {};
+
+// Create audio instances
+Object.keys(audioUrls).forEach(key => {
+  audioObjects[key] = new Audio(audioUrls[key]);
+  audioObjects[key].preload = 'auto';
+  audioObjects[key].volume = 1.0;
+});
+
+// Función para desbloquear el audio
+function unlockAudio() {
+  if (audioUnlocked) return;
+  
+  // Intentar desbloquear el audio con un sonido silencioso
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    gainNode.gain.value = 0.001; // Volumen muy bajo
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.01);
+    
+    // También intentar reproducir el audio del tap
+    audioObjects['tap'].play().then(() => {
+      audioObjects['tap'].pause();
+      audioObjects['tap'].currentTime = 0;
+    }).catch(e => console.log("Audio unlock failed:", e));
+    
+    audioUnlocked = true;
+  } catch (e) {
+    console.warn("Web Audio API no disponible:", e);
+    audioUnlocked = true;
+  }
+}
+
+function playSound(soundType) {
+  if (!soundEnabled || !audioObjects[soundType]) return;
+
+  try {
+    const audio = audioObjects[soundType];
+    audio.currentTime = 0;
+    
+    // Si es la primera vez, intentar desbloquear el audio primero
+    if (!audioUnlocked) {
+      unlockAudio();
+    }
+    
+    const playPromise = audio.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.then(_ => {
+        // Reproducción exitosa
+      }).catch(error => {
+        console.log(`Audio play failed for ${soundType}:`, error);
+      });
+    }
+  } catch (error) {
+    console.log(`Audio error for ${soundType}:`, error);
+  }
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('muteBtn').textContent = soundEnabled ? '🔊' : '🔇';
+}
+
+document.getElementById('muteBtn').onclick = toggleSound;
+
+// Game state
+let matchedPairs = 0;
+let attempts = 0;
+let selectedCards = [];
+let gameData = {};
+let gameStartTime = 0;
+let timerInterval = null;
+
+// Game definition
+const game = {
+  title: 'Sistemas del cuerpo humano',
+  instruction: 'Empareja cada sistema con su función',
+  type: 'memory',
+  pairs: [
+    ['Aparato digestivo', 'Obtiene nutrientes de los alimentos'],
+    ['Aparato respiratorio', 'Obtiene oxígeno del aire'],
+    ['Aparato circulatorio', 'Transporta sangre por todo el cuerpo'],
+    ['Aparato excretor', 'Limpia la sangre y expulsa desechos'],
+    ['Sentidos', 'Obtener información'],
+    ['Sistema nervioso', 'Transmite información y decide una respuesta'],
+    ['Aparato locomotor', 'Realiza movimientos'],
+    ['Aparato reproductor', 'Permite que tengamos bebés']
+  ]
+};
+
+// Timer functions
+function startTimer() {
+  gameStartTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+  const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+  const seconds = (elapsed % 60).toString().padStart(2, '0');
+  document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+}
+
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const secs = (seconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${secs}`;
+}
+
+// Screen management
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(screen => {
+    screen.classList.remove('active');
+  });
+  document.getElementById(screenId).classList.add('active');
+}
+
+function showTheory() {
+  showScreen('theoryScreen');
+}
+
+function startGame() {
+  matchedPairs = 0;
+  attempts = 0;
+  selectedCards = [];
+  updateAttempts();
+
+  showScreen('gameScreen');
+  startTimer();
+  loadGame();
+}
+
+function loadGame() {
+  document.getElementById('gameInstruction').textContent = game.instruction;
+  updateProgress(0);
+
+  // Create all cards (systems and functions)
+  const allCards = [];
+  game.pairs.forEach(pair => {
+    allCards.push(pair[0], pair[1]);
+  });
+
+  // Shuffle cards
+  const shuffledCards = [...allCards].sort(() => Math.random() - 0.5);
+
+  // Create card elements
+  const cardsContainer = document.getElementById('cardsContainer');
+  cardsContainer.innerHTML = '';
+  
+  shuffledCards.forEach((cardText, index) => {
+    const card = document.createElement('div');
+    card.className = 'memory-card';
+    card.textContent = cardText;
+    card.dataset.card = cardText;
+    card.dataset.index = index;
+    card.onclick = () => selectCard(card);
+    cardsContainer.appendChild(card);
+  });
+
+  gameData.pairs = game.pairs;
+  gameData.selectedCards = [];
+  gameData.matchedPairs = 0;
+  gameData.processing = false;
+}
+
+function selectCard(card) {
+  if (card.classList.contains('matched') || gameData.processing) return;
+  if (selectedCards.includes(card)) return;
+
+  playSound('tap');
+  card.classList.add('selected');
+  selectedCards.push(card);
+
+  if (selectedCards.length >= 2) {
+    attempts++;
+    updateAttempts();
+    checkForMatch();
+  }
+}
+
+function checkForMatch() {
+  gameData.processing = true;
+
+  const card1 = selectedCards[0];
+  const card2 = selectedCards[1];
+  const text1 = card1.dataset.card;
+  const text2 = card2.dataset.card;
+
+  // Check if these two cards form a pair
+  let isMatch = false;
+  for (const pair of gameData.pairs) {
+    if ((pair[0] === text1 && pair[1] === text2) || (pair[0] === text2 && pair[1] === text1)) {
+      isMatch = true;
+      break;
+    }
+  }
+
+  if (isMatch) {
+    playSound('correct');
+    card1.classList.remove('selected');
+    card2.classList.remove('selected');
+    card1.classList.add('matched');
+    card2.classList.add('matched');
+    matchedPairs++;
+    updateProgress((matchedPairs / game.pairs.length) * 100);
+  } else {
+    playSound('error');
+    card1.classList.remove('selected');
+    card2.classList.remove('selected');
+  }
+
+  selectedCards = [];
+  gameData.processing = false;
+
+  if (matchedPairs === game.pairs.length) {
+    showFinalScreen();
+  }
+}
+
+function updateProgress(percentage) {
+  document.getElementById('progressFill').style.width = percentage + '%';
+}
+
+function updateAttempts() {
+  document.getElementById('attempts').textContent = attempts;
+}
+
+function showFinalScreen() {
+  stopTimer();
+
+  // Calculate score: 8 ÷ number of attempts × 100
+  const finalScore = Math.round((game.pairs.length / attempts) * 100);
+  const elapsedSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+  const timeStr = formatTime(elapsedSeconds);
+
+  document.getElementById('finalScore').textContent = finalScore;
+  document.getElementById('finalTime').textContent = timeStr;
+  document.getElementById('finalAttempts').textContent = attempts;
+
+  if (finalScore === 100) {
+    document.getElementById('trophyBox').style.display = 'block';
+    document.getElementById('finalMsg').textContent = '¡Perfecto! Has encontrado todas las parejas en el mínimo de intentos.';
+    playSound('victory');
+    createConfetti();
+  } else {
+    document.getElementById('trophyBox').style.display = 'none';
+    document.getElementById('finalMsg').textContent = '¡Buen trabajo! Sigue practicando para mejorar tu puntuación.';
+    playSound('completed');
+  }
+
+  showScreen('resultsScreen');
+}
+
+function createConfetti() {
+  for(let i=0;i<120;i++){
+    setTimeout(()=>{
+      const c=document.createElement('div');
+      c.className='confetti';
+      const x=Math.random()*window.innerWidth;
+      const ty=window.innerHeight+20;
+      const tx=(Math.random()-.5)*160;
+      const colors=['#ff595e','#1982c4','#6a4c93','#ffca3a','#8ac926','#ff924c','#00c2ff'];
+      c.style.left=x+'px';
+      c.style.top='-10px';
+      c.style.backgroundColor=colors[Math.floor(Math.random()*colors.length)];
+      const size=6+Math.random()*8;
+      c.style.width=size+'px';
+      c.style.height=size+'px';
+      c.style.setProperty('--tx', tx+'px');
+      c.style.setProperty('--ty', ty+'px');
+      document.body.appendChild(c);
+      setTimeout(()=>c.remove(), 3200);
+    }, i*18);
+  }
+}
+
+function backToMenu() {
+  stopTimer();
+  showScreen('startScreen');
+
+  matchedPairs = 0;
+  attempts = 0;
+  selectedCards = [];
+  gameData = {};
+}
+
+// Initialize the app
+document.addEventListener('DOMContentLoaded', function() {
+  showScreen('startScreen');
+
+  // Event listeners
+  document.getElementById('playBtn').addEventListener('click', function() {
+    // Desbloquear audio primero
+    unlockAudio();
+    
+    // Pequeña demora para asegurar que el audio se desbloquee
+    setTimeout(() => {
+      playSound('tap');
+      showTheory();
+    }, 50);
+  });
+
+  document.getElementById('startGameBtn').addEventListener('click', function() {
+    playSound('tap');
+    startGame();
+  });
+
+  document.getElementById('backToMenuBtn').addEventListener('click', function() {
+    playSound('tap');
+    backToMenu();
+  });
+
+  // Audio unlock for mobile - intentar desbloquear en la primera interacción
+  ['click', 'touchstart', 'keydown'].forEach(eventType => {
+    document.addEventListener(eventType, function() {
+      if (!audioUnlocked) {
+        unlockAudio();
+      }
+    }, { once: true, passive: true });
+  });
+});
+</script>
+</body>
+</html>
